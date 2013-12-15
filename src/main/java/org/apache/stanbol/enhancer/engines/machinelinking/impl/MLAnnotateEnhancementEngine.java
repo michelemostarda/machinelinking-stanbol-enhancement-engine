@@ -16,6 +16,11 @@
  */
 package org.apache.stanbol.enhancer.engines.machinelinking.impl;
 
+import com.machinelinking.api.client.APIClient;
+import com.machinelinking.api.client.AnnotationResponse;
+import com.machinelinking.api.client.Clazz;
+import com.machinelinking.api.client.Keyword;
+import com.machinelinking.api.client.NGram;
 import org.apache.clerezza.rdf.core.Language;
 import org.apache.clerezza.rdf.core.Literal;
 import org.apache.clerezza.rdf.core.LiteralFactory;
@@ -30,11 +35,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.stanbol.commons.stanboltools.offline.OnlineMode;
 import org.apache.stanbol.enhancer.engines.machinelinking.MLConstants;
-import org.apache.stanbol.enhancer.engines.machinelinking.impl.client.APIClient;
-import org.apache.stanbol.enhancer.engines.machinelinking.impl.client.AnnotationResponse;
-import org.apache.stanbol.enhancer.engines.machinelinking.impl.client.Clazz;
-import org.apache.stanbol.enhancer.engines.machinelinking.impl.client.Keyword;
-import org.apache.stanbol.enhancer.engines.machinelinking.impl.client.NGram;
 import org.apache.stanbol.enhancer.servicesapi.ContentItem;
 import org.apache.stanbol.enhancer.servicesapi.EngineException;
 import org.apache.stanbol.enhancer.servicesapi.EnhancementEngine;

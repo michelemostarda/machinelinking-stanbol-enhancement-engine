@@ -16,6 +16,8 @@
  */
 package org.apache.stanbol.enhancer.engines.machinelinking.impl;
 
+import com.machinelinking.api.client.APIClient;
+import com.machinelinking.api.client.GuessedLanguageResponse;
 import org.apache.clerezza.rdf.core.MGraph;
 import org.apache.clerezza.rdf.core.UriRef;
 import org.apache.felix.scr.annotations.Activate;
@@ -27,8 +29,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.stanbol.commons.stanboltools.offline.OnlineMode;
 import org.apache.stanbol.enhancer.engines.machinelinking.MLConstants;
-import org.apache.stanbol.enhancer.engines.machinelinking.impl.client.APIClient;
-import org.apache.stanbol.enhancer.engines.machinelinking.impl.client.GuessedLanguageResponse;
 import org.apache.stanbol.enhancer.servicesapi.ContentItem;
 import org.apache.stanbol.enhancer.servicesapi.EngineException;
 import org.apache.stanbol.enhancer.servicesapi.EnhancementEngine;
