@@ -41,6 +41,6 @@ public interface MLConstants {
     /**
      * Default HTTP connection timeout (30sec).
      */
-    int DEFAULT_CONNECTION_TIMEOUT = 30;
+    int DEFAULT_CONNECTION_TIMEOUT = 30 * 1000;
 
 }
