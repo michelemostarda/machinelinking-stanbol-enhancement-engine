@@ -17,7 +17,7 @@
     <parent>
         <groupId>org.apache.stanbol</groupId>
         <artifactId>apache-stanbol-enhancement-engines</artifactId>
-        <version>0.10.1-SNAPSHOT</version>
+        <version>0.12.0</version>
         <!--<relativePath>..</relativePath>-->
     </parent>
 
@@ -27,6 +27,10 @@
     <name>Apache Stanbol Enhancement Engine : MachineLinking Engine</name>
     <description>Enhancement Engine using the MachineLinking API.</description>
     <inceptionYear>2013</inceptionYear>
+
+    <properties>
+        <apache.stanbol.version>0.12.0</apache.stanbol.version>
+    </properties>
 
     <scm>
         <connection>
@@ -42,10 +46,6 @@
         <repository>
             <id>machinelinking-api-client-mvn-repo</id>
             <url>https://raw.github.com/michelemostarda/machinelinking-api-client/mvn-repo/</url>
-            <!--<snapshots>-->
-                <!--<enabled>true</enabled>-->
-                <!--<updatePolicy>always</updatePolicy>-->
-            <!--</snapshots>-->
         </repository>
     </repositories>
 
@@ -58,8 +58,8 @@
                 <configuration>
                     <instructions>
                         <Import-Package>
-                            org.apache.stanbol.enhancer.servicesapi; provide:=true; version="[0.10,0.12)",
-                            org.apache.stanbol.enhancer.servicesapi.impl; provide:=true; version="[0.10,0.12)",
+                            org.apache.stanbol.enhancer.servicesapi; provide:=true; version="[0.10,0.13)",
+                            org.apache.stanbol.enhancer.servicesapi.impl; provide:=true; version="[0.10,0.13)",
                             *
                         </Import-Package>
                         <Export-Package>
@@ -68,6 +68,10 @@
                         <Private-Package>
                             org.apache.stanbol.enhancer.engines.machinelinking.impl,
                         </Private-Package>
+                        <!-- embed the ML api in the bundle -->
+                        <Embed-Dependency>
+                          api-client
+                        </Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>
@@ -89,12 +93,12 @@
         <dependency>
             <groupId>org.apache.stanbol</groupId>
             <artifactId>org.apache.stanbol.enhancer.servicesapi</artifactId>
-            <version>0.11.0-SNAPSHOT</version>
+            <version>${apache.stanbol.version}</version>
         </dependency>
         <dependency> <!-- STANBOL-739: adapt Lemmatizer Engine to use AnalyzedText -->
             <groupId>org.apache.stanbol</groupId>
             <artifactId>org.apache.stanbol.enhancer.nlp</artifactId>
-            <version>0.11.0-SNAPSHOT</version>
+            <version>${apache.stanbol.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.clerezza</groupId>
@@ -121,7 +125,7 @@
         <dependency>
             <groupId>org.apache.stanbol</groupId>
             <artifactId>org.apache.stanbol.commons.stanboltools.offline</artifactId>
-            <version>0.11.0</version>
+            <version>${apache.stanbol.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -129,13 +133,13 @@
         <dependency>
             <groupId>org.apache.stanbol</groupId>
             <artifactId>org.apache.stanbol.enhancer.test</artifactId>
-            <version>0.11.0-SNAPSHOT</version>
+            <version>${apache.stanbol.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.stanbol</groupId>
             <artifactId>org.apache.stanbol.enhancer.core</artifactId>
-            <version>0.11.0-SNAPSHOT</version>
+            <version>${apache.stanbol.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency><!-- for debugging enhancements -->
