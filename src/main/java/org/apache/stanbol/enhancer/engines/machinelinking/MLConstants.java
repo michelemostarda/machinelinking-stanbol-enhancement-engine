@@ -43,4 +43,9 @@ public interface MLConstants {
      */
     int DEFAULT_CONNECTION_TIMEOUT = 30 * 1000;
 
+    /**
+     * DBpedia URL prefix.
+     */
+    public static final String DBPEDIA_PREFIX = "http://dbpedia.org/";
+
 }
