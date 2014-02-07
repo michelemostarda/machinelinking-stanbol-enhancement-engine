@@ -19,6 +19,7 @@ package org.apache.stanbol.enhancer.engines.machinelinking.impl;
 import org.apache.clerezza.rdf.core.LiteralFactory;
 import org.apache.clerezza.rdf.core.Resource;
 import org.apache.clerezza.rdf.core.UriRef;
+import org.apache.commons.io.IOUtils;
 import org.apache.stanbol.enhancer.contentitem.inmemory.InMemoryContentItemFactory;
 import org.apache.stanbol.enhancer.engines.machinelinking.MLConstants;
 import org.apache.stanbol.enhancer.servicesapi.Blob;
@@ -63,23 +64,13 @@ public class MLAnnotateEnhancementEngineTest {
 
     private static ContentItemFactory ciFactory = InMemoryContentItemFactory.getInstance();
 
-    private static String TEST_TEXT = "President Obama is meeting Angela Merkel in Berlin on Monday";
+    private static String SHORT_TEXT = "President Obama is meeting Angela Merkel in Berlin on Monday";
 
     private MLAnnotateEnhancementEngine annotateEngine;
-
-    private ContentItem ci;
 
     @Before
 	public void setUp() throws IOException, ConfigurationException {
         annotateEngine = new MLAnnotateEnhancementEngine();
-
-        ci = ciFactory.createContentItem(new StringSource(TEST_TEXT));
-		assertNotNull(ci);
-        Entry<UriRef, Blob> textContentPart = ContentItemHelper.getBlob(
-                ci, Collections.singleton("text/plain")
-        );
-		assertNotNull(textContentPart);
-
         // Activation.
         Dictionary<String, Object> properties = new Hashtable<String, Object>();
         properties.put(EnhancementEngine.PROPERTY_NAME, "machinelinkingLangId");
@@ -87,11 +78,12 @@ public class MLAnnotateEnhancementEngineTest {
         properties.put(MLConstants.APP_KEY, MLTestConstants.APP_KEY);
         properties.put(MLConstants.CONNECTION_TIMEOUT, 30 * 1000);
         annotateEngine.activate(new MockComponentContext(properties));
-	}
+    }
 
     @Test
-	public void testCanEnhance() throws EngineException {
-		assertEquals(ENHANCE_ASYNC, annotateEngine.canEnhance(ci));
+	public void testCanEnhance() throws EngineException, IOException {
+		final ContentItem ci = prepareContentItem(SHORT_TEXT);
+        assertEquals(ENHANCE_ASYNC, annotateEngine.canEnhance(ci));
 	}
 
 	/**
@@ -99,8 +91,28 @@ public class MLAnnotateEnhancementEngineTest {
 	 * @throws org.apache.stanbol.enhancer.servicesapi.EngineException
 	 */
 	@Test
-	public void testEnhancement() throws EngineException {
-	    try {
+	public void testEnhanceShortText() throws EngineException, IOException {
+        verifyEnhancement(SHORT_TEXT);
+    }
+
+    @Test
+    public void testEnhanceLongText() throws IOException, EngineException {
+        verifyEnhancement(IOUtils.toString(this.getClass().getResourceAsStream("text1.txt")));
+    }
+
+    private ContentItem prepareContentItem(String text) throws IOException {
+        final ContentItem ci = ciFactory.createContentItem(new StringSource(text));
+        assertNotNull(ci);
+        Entry<UriRef, Blob> textContentPart = ContentItemHelper.getBlob(
+                ci, Collections.singleton("text/plain")
+        );
+        assertNotNull(textContentPart);
+        return ci;
+    }
+
+    private void verifyEnhancement(String text) throws IOException, EngineException {
+	    final ContentItem ci = prepareContentItem(text);
+        try {
 	        annotateEngine.computeEnhancements(ci);
 	    } catch (EngineException e) {
             RemoteServiceHelper.checkServiceUnavailable(e);
@@ -114,7 +126,7 @@ public class MLAnnotateEnhancementEngineTest {
                 Properties.DC_CREATOR,
                 LiteralFactory.getInstance().createTypedLiteral(annotateEngine.getClass().getName())
         );
-		EnhancementStructureHelper.validateAllTextAnnotations(ci.getMetadata(), TEST_TEXT, expectedValues);
+		EnhancementStructureHelper.validateAllTextAnnotations(ci.getMetadata(), text, expectedValues);
 		EnhancementStructureHelper.validateAllEntityAnnotations(ci.getMetadata(), expectedValues);
 	}
 
