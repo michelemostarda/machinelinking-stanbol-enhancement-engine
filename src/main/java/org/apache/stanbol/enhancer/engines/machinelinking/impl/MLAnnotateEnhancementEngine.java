@@ -154,7 +154,6 @@ public class MLAnnotateEnhancementEngine extends
         this.client = new APIClient(appId, appKey, connTimeout);
     }
 
-
     /**
      * Check if the content can be enhanced
      *
@@ -213,37 +212,49 @@ public class MLAnnotateEnhancementEngine extends
     protected void createStatements(
             ContentItem ci, AnnotationResponse annotation, String text, MGraph writer
     ) {
-
         final String lang = annotation.getLang();
         final Language textLang = new Language(lang);
-        final Literal textLiteral = new PlainLiteralImpl(text, textLang);
-        for(Keyword keyword : annotation.getKeywords()) {
-            UriRef entityAnnotation = EnhancementEngineHelper.createEntityEnhancement(ci, this);
-            UriRef textAnnotation = EnhancementEngineHelper.createTextEnhancement(ci, this);
-            writer.add(new TripleImpl(entityAnnotation, DC_RELATION, textAnnotation));
 
-            // Text annotation
-            Util.addLanguageProperty(textAnnotation, writer, lang);
-            writer.add(new TripleImpl(
-                    textAnnotation,
-                    ENHANCER_SELECTION_CONTEXT, textLiteral
-            ));
-            writer.add(new TripleImpl(
-                    textAnnotation,
-                    ENHANCER_SELECTED_TEXT,
-                    new PlainLiteralImpl(keyword.getForm(), textLang)
-            ));
+        // Text annotation.
+        final UriRef textAnnotation = EnhancementEngineHelper.createTextEnhancement(ci, this);
+        Util.addLanguageProperty(textAnnotation, writer, lang);
+
+        for(Keyword keyword : annotation.getKeywords()) {
+            final UriRef entityAnnotation = EnhancementEngineHelper.createEntityEnhancement(ci, this);
+
+            // Single Ngram annotation.
             for (NGram nGram : keyword.getNGrams()) {
+                final UriRef ngramTextAnnotation = EnhancementEngineHelper.createTextEnhancement(ci, this);
+
+                writer.add(new TripleImpl(entityAnnotation, DC_RELATION, ngramTextAnnotation));
+
                 writer.add(new TripleImpl(
-                        textAnnotation,
+                        ngramTextAnnotation,
                         ENHANCER_START,
                         literalFactory.createTypedLiteral(nGram.getStart())
                 ));
                 writer.add(new TripleImpl(
-                        textAnnotation,
+                        ngramTextAnnotation,
                         ENHANCER_END,
                         literalFactory.createTypedLiteral(nGram.getEnd())
+                ));
 
+                writer.add(new TripleImpl(
+                        ngramTextAnnotation,
+                        ENHANCER_SELECTED_TEXT,
+                        //new PlainLiteralImpl(text.substring(nGram.getStart(), nGram.getEnd()), textLang)
+                        new PlainLiteralImpl(keyword.getForm(), textLang)
+                ));
+                final String selectionContext = EnhancementEngineHelper.getSelectionContext(
+                        text, keyword.getForm(), nGram.getStart()
+                );
+                writer.add(new TripleImpl(
+                        ngramTextAnnotation,
+                        ENHANCER_SELECTION_CONTEXT,
+                        new PlainLiteralImpl(
+                                selectionContext,
+                                textLang
+                        )
                 ));
             }
 
@@ -253,7 +264,7 @@ public class MLAnnotateEnhancementEngine extends
             writer.add(new TripleImpl(
                     entityAnnotation,
                     ENHANCER_ENTITY_REFERENCE,
-                    new UriRef(keyword.getSensePage())
+                    new UriRef(MLConstants.DBPEDIA_PREFIX + keyword.getSensePage())
             ));
             for (Clazz clazz : keyword.getClasses()){
                 UriRef annotationType = new UriRef(clazz.getUrl().toExternalForm());
@@ -262,7 +273,9 @@ public class MLAnnotateEnhancementEngine extends
             writer.add(new TripleImpl(
                     entityAnnotation,
                     ENHANCER_CONFIDENCE,
-                    literalFactory.createTypedLiteral((double) keyword.getSenseProbability())
+                    literalFactory.createTypedLiteral(
+                            normalizeProbability((double) keyword.getSenseProbability())
+                    )
             ));
         }
     }
@@ -271,5 +284,11 @@ public class MLAnnotateEnhancementEngine extends
    	public Map<String, Object> getServiceProperties() {
    		return Collections.unmodifiableMap(Collections.singletonMap(ENHANCEMENT_ENGINE_ORDERING, (Object) defaultOrder));
    	}
+
+    private double normalizeProbability(double prob) {
+        if(prob < 0) return 0;
+        if(prob > 1) return 1;
+        return prob;
+    }
 
 }
