@@ -18,7 +18,6 @@ package org.apache.stanbol.enhancer.engines.machinelinking.impl;
 
 import com.machinelinking.api.client.APIClient;
 import com.machinelinking.api.client.AnnotationResponse;
-import com.machinelinking.api.client.Clazz;
 import com.machinelinking.api.client.Keyword;
 import com.machinelinking.api.client.NGram;
 import org.apache.clerezza.rdf.core.Language;
@@ -227,7 +226,6 @@ public class MLAnnotateEnhancementEngine extends
                 final UriRef ngramTextAnnotation = EnhancementEngineHelper.createTextEnhancement(ci, this);
 
                 writer.add(new TripleImpl(entityAnnotation, DC_RELATION, ngramTextAnnotation));
-
                 writer.add(new TripleImpl(
                         ngramTextAnnotation,
                         ENHANCER_START,
@@ -266,8 +264,15 @@ public class MLAnnotateEnhancementEngine extends
                     ENHANCER_ENTITY_REFERENCE,
                     new UriRef(MLConstants.DBPEDIA_PREFIX + keyword.getSensePage())
             ));
+            // Entity type.
+            /*
             for (Clazz clazz : keyword.getClasses()){
                 UriRef annotationType = new UriRef(clazz.getUrl().toExternalForm());
+                writer.add(new TripleImpl(entityAnnotation, ENHANCER_ENTITY_TYPE, annotationType));
+            }
+            */
+            if (keyword.getClasses().length > 0) {
+                UriRef annotationType = new UriRef(keyword.getClasses()[0].getUrl().toExternalForm());
                 writer.add(new TripleImpl(entityAnnotation, ENHANCER_ENTITY_TYPE, annotationType));
             }
             writer.add(new TripleImpl(
