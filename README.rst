@@ -15,6 +15,10 @@ Usage
 
 The code is a standard Maven3 module.
 
+Before running any test you need to obtain a MachineLinking APP ID and KEY from 3scale
+(https://machinelinking.3scale.net/login) and set it in
+org.apache.stanbol.enhancer.engines.machinelinking.impl.MLTestConstants .
+
 ----
 
 [1] https://stanbol.apache.org/docs/trunk/components/enhancer/engines/list.html

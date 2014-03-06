@@ -7,9 +7,9 @@ package org.apache.stanbol.enhancer.engines.machinelinking.impl;
  */
 public class MLTestConstants {
 
-    // Demo User credentials.
-    public static final String APP_ID  = "0ccb23d8";
-    public static final String APP_KEY = "7ad370d3f107133120712c40b30f6dec";
+    // Set here your APP ID and KEY retrieved from https://machinelinking.3scale.net/login
+    public static final String APP_ID  = "my.appid";
+    public static final String APP_KEY = "my.appkey";
 
     private MLTestConstants() {}
 
