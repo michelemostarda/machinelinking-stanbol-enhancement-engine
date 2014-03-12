@@ -42,8 +42,11 @@ public class MLLanguageIdentifierEnhancementEngineTest {
     public void activate() throws IOException, ConfigurationException {
         Dictionary<String, Object> properties = new Hashtable<String, Object>();
         properties.put(EnhancementEngine.PROPERTY_NAME, "machinelinkingLangId");
-        properties.put(MLConstants.APP_ID, MLTestConstants.APP_ID);
-        properties.put(MLConstants.APP_KEY, MLTestConstants.APP_KEY);
+        
+        properties.put(MLConstants.APP_ID, System.getProperty(
+            MLConstants.APP_ID, MLTestConstants.APP_ID));
+        properties.put(MLConstants.APP_KEY, System.getProperty(
+            MLConstants.APP_KEY,MLTestConstants.APP_KEY));
         properties.put(MLConstants.CONNECTION_TIMEOUT, 30 * 1000);
         engine = new MLLanguageIdentifierEnhancementEngine();
         engine.activate(new MockComponentContext(properties));
