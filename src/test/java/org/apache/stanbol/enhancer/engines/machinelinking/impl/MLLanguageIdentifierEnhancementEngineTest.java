@@ -3,6 +3,8 @@ package org.apache.stanbol.enhancer.engines.machinelinking.impl;
 import org.apache.clerezza.rdf.core.LiteralFactory;
 import org.apache.clerezza.rdf.core.Resource;
 import org.apache.clerezza.rdf.core.UriRef;
+import org.apache.clerezza.rdf.core.serializedform.SupportedFormat;
+import org.apache.clerezza.rdf.jena.serializer.JenaSerializerProvider;
 import org.apache.stanbol.enhancer.contentitem.inmemory.InMemoryContentItemFactory;
 import org.apache.stanbol.enhancer.engines.machinelinking.MLConstants;
 import org.apache.stanbol.enhancer.nlp.model.AnalysedText;
@@ -20,8 +22,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.cm.ConfigurationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -33,8 +39,14 @@ import java.util.Hashtable;
  */
 public class MLLanguageIdentifierEnhancementEngineTest {
 
+    /**
+     * This contains the logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(MLAnnotateEnhancementEngineTest.class);
+
     private static final ContentItemFactory ciFactory = InMemoryContentItemFactory.getInstance();
     private static final AnalysedTextFactory atFactory = AnalysedTextFactory.getDefaultInstance();
+    private static JenaSerializerProvider serializer = new JenaSerializerProvider();
 
     private MLLanguageIdentifierEnhancementEngine engine;
 
@@ -75,7 +87,9 @@ public class MLLanguageIdentifierEnhancementEngineTest {
         } catch (EngineException e) {
             RemoteServiceHelper.checkServiceUnavailable(e);
         }
-
+        
+        logEnhancements(ci);
+        
         HashMap<UriRef,Resource> expectedValues = new HashMap<UriRef,Resource>();
         expectedValues.put(Properties.ENHANCER_EXTRACTED_FROM, ci.getUri());
         expectedValues.put(
@@ -89,6 +103,18 @@ public class MLLanguageIdentifierEnhancementEngineTest {
 		EnhancementStructureHelper.validateAllEntityAnnotations(
 				ci.getMetadata(), expectedValues
         );
+    }
+    /**
+     * Logs the enhancements as TURTLE on DEBUG level
+     * @param ci the contentItem
+     */
+    private void logEnhancements(ContentItem ci){
+        if(LOG.isDebugEnabled()){
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            serializer.serialize(bout, ci.getMetadata(), SupportedFormat.TURTLE);
+            LOG.debug("Enhancements of {}",ci.getUri().getUnicodeString());
+            LOG.debug(new String(bout.toByteArray(),Charset.forName("UTF8")));
+        }
     }
 
 }

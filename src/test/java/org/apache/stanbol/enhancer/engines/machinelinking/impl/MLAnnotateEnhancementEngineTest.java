@@ -19,6 +19,8 @@ package org.apache.stanbol.enhancer.engines.machinelinking.impl;
 import org.apache.clerezza.rdf.core.LiteralFactory;
 import org.apache.clerezza.rdf.core.Resource;
 import org.apache.clerezza.rdf.core.UriRef;
+import org.apache.clerezza.rdf.core.serializedform.SupportedFormat;
+import org.apache.clerezza.rdf.jena.serializer.JenaSerializerProvider;
 import org.apache.commons.io.IOUtils;
 import org.apache.stanbol.enhancer.contentitem.inmemory.InMemoryContentItemFactory;
 import org.apache.stanbol.enhancer.engines.machinelinking.MLConstants;
@@ -38,7 +40,9 @@ import org.osgi.service.cm.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -63,6 +67,7 @@ public class MLAnnotateEnhancementEngineTest {
 	private static final Logger LOG = LoggerFactory.getLogger(MLAnnotateEnhancementEngineTest.class);
 
     private static ContentItemFactory ciFactory = InMemoryContentItemFactory.getInstance();
+    private static JenaSerializerProvider serializer = new JenaSerializerProvider();
 
     private static String SHORT_TEXT = "President Obama is meeting Angela Merkel in Berlin on Monday";
 
@@ -74,8 +79,10 @@ public class MLAnnotateEnhancementEngineTest {
         // Activation.
         Dictionary<String, Object> properties = new Hashtable<String, Object>();
         properties.put(EnhancementEngine.PROPERTY_NAME, "machinelinkingLangId");
-        properties.put(MLConstants.APP_ID, MLTestConstants.APP_ID);
-        properties.put(MLConstants.APP_KEY, MLTestConstants.APP_KEY);
+        properties.put(MLConstants.APP_ID, System.getProperty(
+            MLConstants.APP_ID, MLTestConstants.APP_ID));
+        properties.put(MLConstants.APP_KEY, System.getProperty(
+            MLConstants.APP_KEY,MLTestConstants.APP_KEY));
         properties.put(MLConstants.CONNECTION_TIMEOUT, 30 * 1000);
         annotateEngine.activate(new MockComponentContext(properties));
     }
@@ -117,6 +124,9 @@ public class MLAnnotateEnhancementEngineTest {
 	    } catch (EngineException e) {
             RemoteServiceHelper.checkServiceUnavailable(e);
         }
+        
+        logEnhancements(ci);
+        
         HashMap<UriRef,Resource> expectedValues = new HashMap<UriRef,Resource>();
         expectedValues.put(
                 Properties.ENHANCER_EXTRACTED_FROM,
@@ -129,5 +139,17 @@ public class MLAnnotateEnhancementEngineTest {
 		EnhancementStructureHelper.validateAllTextAnnotations(ci.getMetadata(), text, expectedValues);
 		EnhancementStructureHelper.validateAllEntityAnnotations(ci.getMetadata(), expectedValues);
 	}
+    /**
+     * Logs the enhancements as TURTLE on DEBUG level
+     * @param ci the contentItem
+     */
+    private void logEnhancements(ContentItem ci){
+        if(LOG.isDebugEnabled()){
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            serializer.serialize(bout, ci.getMetadata(), SupportedFormat.TURTLE);
+            LOG.debug("Enhancements of {}",ci.getUri().getUnicodeString());
+            LOG.debug(new String(bout.toByteArray(),Charset.forName("UTF8")));
+        }
+    }
 
 }
