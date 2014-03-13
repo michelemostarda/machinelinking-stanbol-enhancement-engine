@@ -57,6 +57,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Bundle-Vendor>Machine Linking srl</Bundle-Vendor>
+                        <Bundle-DocURL>https://github.com/michelemostarda/machinelinking-stanbol-enhancement-engine</Bundle-DocURL>
                         <Import-Package>
                             org.apache.stanbol.enhancer.servicesapi; provide:=true; version="[0.10,0.13)",
                             org.apache.stanbol.enhancer.servicesapi.impl; provide:=true; version="[0.10,0.13)",
