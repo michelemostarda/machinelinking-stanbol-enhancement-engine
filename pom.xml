@@ -163,11 +163,6 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency><!-- for debugging enhancements -->
-            <groupId>org.apache.clerezza</groupId>
-            <artifactId>rdf.jena.serializer</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>
