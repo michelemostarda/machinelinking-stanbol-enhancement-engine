@@ -22,6 +22,7 @@
     </parent>
 
     <artifactId>org.apache.stanbol.enhancer.engines.machinelinking</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>Apache Stanbol Enhancement Engine : MachineLinking Engine</name>
