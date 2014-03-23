@@ -21,7 +21,8 @@
         <!--<relativePath>..</relativePath>-->
     </parent>
 
-    <artifactId>org.apache.stanbol.enhancer.engines.machinelinking</artifactId>
+    <groupId>com.machinelinking.stanbol</groupId>
+    <artifactId>machinelinking-engine</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
@@ -66,10 +67,10 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                            org.apache.stanbol.enhancer.engines.machinelinking
+                            com.machinelinking.stanbol.enhancer.engines.machinelinking
                         </Export-Package>
                         <Private-Package>
-                            org.apache.stanbol.enhancer.engines.machinelinking.impl,
+                            com.machinelinking.stanbol.enhancer.engines.machinelinking.impl,
                         </Private-Package>
                         <!-- embed the ML api in the bundle -->
                         <Embed-Dependency>

@@ -14,19 +14,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.stanbol.enhancer.engines.machinelinking.impl;
+package com.machinelinking.stanbol.enhancer.engines.machinelinking;
 
 /**
- * Defines parameters to access the <i>MachineLinking API</i>.
+ * Set of <i>MachineLinking</i> module properties.
  *
  * @author Michele Mostarda (michele@machinelinking.com)
  */
-public class MLTestConstants {
+public interface MLConstants {
 
-    // Set here your APP ID and KEY retrieved from https://machinelinking.3scale.net/login
-    public static final String APP_ID  = "ml.appid";
-    public static final String APP_KEY = "ml.appkey";
+    /**
+     * Application id used to access to the <i>MachineLinking</i> service.
+     */
+    String APP_ID  = "ml.appid";
 
-    private MLTestConstants() {}
+    /**
+     * Application key used to access to the <i>MachineLinking</i> service.
+     */
+    String APP_KEY = "ml.appkey";
+
+    /**
+     * HTTP connection timeout.
+     */
+    String CONNECTION_TIMEOUT = "ml.connectionTimeout";
+
+    /**
+     * Default HTTP connection timeout (30sec).
+     */
+    int DEFAULT_CONNECTION_TIMEOUT = 30 * 1000;
+
+    /**
+     * DBpedia URL prefix.
+     */
+    public static final String DBPEDIA_PREFIX = "http://dbpedia.org/";
 
 }
