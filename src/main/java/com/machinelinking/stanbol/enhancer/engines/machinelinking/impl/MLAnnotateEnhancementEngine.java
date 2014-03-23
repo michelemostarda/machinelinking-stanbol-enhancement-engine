@@ -14,12 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.stanbol.enhancer.engines.machinelinking.impl;
+package com.machinelinking.stanbol.enhancer.engines.machinelinking.impl;
 
 import com.machinelinking.api.client.APIClient;
 import com.machinelinking.api.client.AnnotationResponse;
 import com.machinelinking.api.client.Keyword;
 import com.machinelinking.api.client.NGram;
+import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
+
 import org.apache.clerezza.rdf.core.Language;
 import org.apache.clerezza.rdf.core.Literal;
 import org.apache.clerezza.rdf.core.LiteralFactory;
@@ -28,12 +30,12 @@ import org.apache.clerezza.rdf.core.UriRef;
 import org.apache.clerezza.rdf.core.impl.PlainLiteralImpl;
 import org.apache.clerezza.rdf.core.impl.TripleImpl;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.stanbol.commons.stanboltools.offline.OnlineMode;
-import org.apache.stanbol.enhancer.engines.machinelinking.MLConstants;
 import org.apache.stanbol.enhancer.servicesapi.ContentItem;
 import org.apache.stanbol.enhancer.servicesapi.EngineException;
 import org.apache.stanbol.enhancer.servicesapi.EnhancementEngine;
@@ -70,7 +72,8 @@ import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ST
         metatype = true,
         immediate = true,
         label = "%stanbol.MLAnnotateEnhancementEngine.name",
-        description = "%stanbol.MLAnnotateEnhancementEngine.description"
+        description = "%stanbol.MLAnnotateEnhancementEngine.description",
+        policy=ConfigurationPolicy.REQUIRE //APP_ID and APP_KEY are required
 )
 @Service
 @Properties(value = {

@@ -14,21 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.stanbol.enhancer.engines.machinelinking.impl;
+package com.machinelinking.stanbol.enhancer.engines.machinelinking.impl;
 
 import com.machinelinking.api.client.APIClient;
 import com.machinelinking.api.client.GuessedLanguageResponse;
+import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
+
 import org.apache.clerezza.rdf.core.MGraph;
 import org.apache.clerezza.rdf.core.UriRef;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.stanbol.commons.stanboltools.offline.OnlineMode;
-import org.apache.stanbol.enhancer.engines.machinelinking.MLConstants;
 import org.apache.stanbol.enhancer.servicesapi.ContentItem;
 import org.apache.stanbol.enhancer.servicesapi.EngineException;
 import org.apache.stanbol.enhancer.servicesapi.EnhancementEngine;
@@ -54,7 +56,8 @@ import java.util.Map;
         immediate = true,
         metatype = true,
         label = "%stanbol.MLLanguageIdentifierEnhancementEngine.name",
-        description = "%stanbol.MLLanguageIdentifierEnhancementEngine.description"
+        description = "%stanbol.MLLanguageIdentifierEnhancementEngine.description",
+        policy=ConfigurationPolicy.REQUIRE //APP_ID and APP_KEY are required
 )
 @Service
 @Properties(value = { 
