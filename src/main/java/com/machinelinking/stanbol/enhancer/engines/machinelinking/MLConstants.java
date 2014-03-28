@@ -46,6 +46,6 @@ public interface MLConstants {
     /**
      * DBpedia URL prefix.
      */
-    public static final String DBPEDIA_PREFIX = "http://dbpedia.org/";
+    public static final String DBPEDIA_PREFIX = "http://dbpedia.org/resource/";
 
 }
