@@ -18,12 +18,13 @@ The code is a standard Maven3 module.
 Before running any test you need to obtain a MachineLinking APP ID and KEY from 3scale
 (https://machinelinking.3scale.net/login) 
 
-For executing the tests you need to parsed your APP ID and KEY as System parameters 
-like
+Then you can run tests specifying APP ID and KEY as System properties:
+
+    mvn -Dml.appid={app.id} -Dml.appkey={app.key} clean test
 
     mvn -Dml.appid={app.id} -Dml.appkey={app.key} install
     
-You will also need to configure the Engines with both `app.id` and `app.key`.
+You will also need to configure the Stanbol engines with the same `ml.appid` and `ml.appkey` properties.
 
 ----
 
