@@ -27,6 +27,8 @@ import org.apache.stanbol.enhancer.servicesapi.EnhancementEngine;
 import org.apache.stanbol.enhancer.servicesapi.helper.ContentItemHelper;
 import org.osgi.service.cm.ConfigurationException;
 
+import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -153,5 +155,59 @@ public class Util {
         g.add(new TripleImpl(entityAnnotation, DC_LANGUAGE, new PlainLiteralImpl(lang)));
         g.add(new TripleImpl(entityAnnotation, ENHANCER_CONFIDENCE, literalFactory.createTypedLiteral(1.0)));
         g.add(new TripleImpl(entityAnnotation, DC_TYPE, DCTERMS_LINGUISTIC_SYSTEM));
+    }
+
+    /**
+     * Parses a request option from the configuration parameters. <p>
+     * <b>IMPORTANT</b>This method assumes that the parsed confParam is
+     * '<code>ml.{parameter}</code> See {@link MLConstants} for defined
+     * constants (e.g. {@link MLConstants#CATEGORY}).<p>
+     * 
+     * Supported configuration values are <ul>
+     * <li><code>true/false</code> ({@link Boolean})
+     * <li><code>0/1</code> ({@link Number})
+     * <li><code>"0"/"1"</code> and <code>"true"/"false"</code> ({@link String})
+     * </ul>
+     * 
+     * If the requested confParam is not present in the configuration no request
+     * parameter is added to the request options
+     * 
+     * @param conf The configuration
+     * @param confParam The configuration parameter - '<code>ml.{parameter}</code>' 
+     * where <code>{parameter}</code> is one of the 
+     * <a href="http://www.machinelinking.com/wp/documentation/text-annotation/#parameters"> 
+     * parameters </a> supported by Machinelinking
+     * @param requestOptions the request options map to add the parsed '<code>{parameter}</code>' value
+     * @see MLConstants
+     * @see <a href="http://www.machinelinking.com/wp/documentation/text-annotation/#parameters"> 
+     * Parameters</a> supported by Machinelinking.
+     */
+    public static void parseRequestOption(Dictionary<String,Object> conf, String confParam,
+            Map<String,Object> requestOptions) {
+        Object value = conf.get(confParam);
+        Boolean categoryState;
+        if(value instanceof String){
+            String strVal = ((String) value).trim();
+            if("0".equals(strVal)){
+                categoryState = Boolean.FALSE;
+            } else if("1".equals(strVal)){
+                categoryState = Boolean.TRUE;
+            } else {
+                categoryState = new Boolean(strVal);
+            }
+        } else if(value instanceof Number){
+            int state = ((Number)value).intValue();
+            categoryState = state == 1 ? Boolean.TRUE : state == 0 ? Boolean.FALSE : null;
+        } else if(value instanceof Boolean){
+            categoryState = (Boolean)value;
+        } else {
+            categoryState = null;
+        }
+        if(categoryState != null){
+            String reqParam = confParam.substring(3); //remove the 'ml.{option}'
+            boolean state = value instanceof Boolean ? ((Boolean)value).booleanValue() :
+                Boolean.parseBoolean(value.toString());
+            requestOptions.put(reqParam, state ? 1 : 0);
+        } // else  state not set ... do not add request option
     }
 }

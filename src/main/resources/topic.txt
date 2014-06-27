@@ -1,0 +1,81 @@
+cul Culture
+    arc Architecture
+    art Arts
+        pit Painting
+        scu Sculpture
+    int Entertainment
+        let Literature
+        cin Cinema
+        gio Games
+        mus Music
+scs Social sciences
+    mil Military
+    eco Economics
+    dir Law
+    pol Politics
+    rel Religion
+    fil Philosophy/Psychology
+soc Society
+    sti Lifestyle
+        abb Clothing
+        cos Cosmetics
+        lux Luxury
+        mod Fashion
+    app Education
+    com Communications
+    hob Hobby
+        fot Photography
+    dis Disasters
+    sal Health
+    tur Turism
+    abi Living
+    cri Crime
+        vio Violence
+        ter Terrorism
+    ali Food
+    pet Pets
+    ses Sex/gossip
+sct Science/technology
+    sci Science
+        amb Environment
+        ast Astronomy
+        bio Biology
+            bot Botany
+            zoo Zoology
+        geo Geology
+        mat Mathematics
+        chi Chemistry
+        fis Physics
+        sta Statistics
+    tec Technology
+        agr Agricolture
+        inf Infrastructures
+            tra Transport
+        arm Weapons
+        cpt Computer
+        ene Energy
+        med Medicine
+        vei Motors
+        ing Engineering
+        arm Weapons
+        sic Security
+spo Sport
+    aut Auto racing
+    alp Mountaineering
+    arr Climbing
+    atl Athletics
+    bas Baseball
+    cal Football
+    cic Cycling
+    oli Olympiad
+    hoc Hockey
+    mot Motorcycling
+    plc Basketball
+    pln Water polo
+    plv Volleyball
+    rub Rugby
+    sch Fencing
+    ski Skiing
+    ten Tennis
+    wre Wrestling
+sto History

@@ -46,6 +46,46 @@ public interface MLConstants {
     /**
      * DBpedia URL prefix.
      */
-    public static final String DBPEDIA_PREFIX = "http://dbpedia.org/resource/";
+    String DBPEDIA_RESOURCE_PREFIX = "http://dbpedia.org/resource/";
+    /**
+     * DBpedia Category prefix.
+     */
+    String DBPEDIA_CATEGORY_PREFIX = DBPEDIA_RESOURCE_PREFIX+"Category:";
+    /**
+     * DBpedia Ontology prefix.
+     */
+    String DBPEDIA_ONTOLOGY_PREFIX = "http://dbpedia.org/ontology/";
 
+    /**
+     * The Airpedia class namespace
+     */
+    String AIRPEDIA_CLASS_PREFIX = "http://www.airpedia.org/ontology/class/";
+    /**
+     * The Airpedia topic namespace
+     */
+    String AIRPEDIA_TOPIC_PREFIX = "http://www.airpedia.org/topic/class/";
+    
+    /**
+     * If additional information about the entity should be added to the 
+     * Enhancement results
+     */
+    String INCLUDE_ENTITY_DATA = "ml.entitydata";
+    /**
+     * The default for the {@link #INCLUDE_ENTITY_DATA} state (default: <code>false</code>)
+     */
+    boolean DEFAULT_INCLUDE_ENTITY_DATA_STATE = false;
+    
+    /**
+     * whether to add categories from Wikipedia (optional, requires “disambiguation=1″)
+     */
+    String CATEGORY = "ml.category";
+    /**
+     * whether to add DBpedia/Airpedia topic (optional, requires “disambiguation=1″)
+     */
+    String TOPIC = "ml.topic";
+    /**
+     * whether to add DBpedia/Airpedia type (optional, requires “disambiguation=1″)
+     */
+    String CLASS = "ml.class";
+    
 }

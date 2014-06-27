@@ -33,6 +33,7 @@ import org.apache.stanbol.enhancer.servicesapi.impl.StringSource;
 import org.apache.stanbol.enhancer.servicesapi.rdf.Properties;
 import org.apache.stanbol.enhancer.test.helper.EnhancementStructureHelper;
 import org.apache.stanbol.enhancer.test.helper.RemoteServiceHelper;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.cm.ConfigurationException;
@@ -86,7 +87,11 @@ public class MLAnnotateEnhancementEngineTest {
         properties.put(MLConstants.APP_KEY, System.getProperty(
             MLConstants.APP_KEY,MLTestConstants.APP_KEY));
         properties.put(MLConstants.CONNECTION_TIMEOUT, 30 * 1000);
+        //enable topic
+        properties.put(MLConstants.TOPIC, Boolean.TRUE);
+        
         annotateEngine.activate(new MockComponentContext(properties));
+        
     }
 
     @Test
@@ -109,6 +114,12 @@ public class MLAnnotateEnhancementEngineTest {
         verifyEnhancement(IOUtils.toString(this.getClass().getResourceAsStream("text1.txt")));
     }
 
+    @Test
+    public void testEnhanceNonEnglishText() throws IOException, EngineException {
+        verifyEnhancement(IOUtils.toString(this.getClass().getResourceAsStream("text_de.txt")));
+    }
+
+    
     private ContentItem prepareContentItem(String text) throws IOException {
         final ContentItem ci = ciFactory.createContentItem(new StringSource(text));
         assertNotNull(ci);
@@ -140,6 +151,8 @@ public class MLAnnotateEnhancementEngineTest {
         );
 		EnhancementStructureHelper.validateAllTextAnnotations(ci.getMetadata(), text, expectedValues);
 		EnhancementStructureHelper.validateAllEntityAnnotations(ci.getMetadata(), expectedValues);
+		//we do expect three topics
+		Assert.assertEquals(3, EnhancementStructureHelper.validateAllTopicAnnotations(ci.getMetadata(), expectedValues));
 	}
     /**
      * Logs the enhancements as TURTLE on DEBUG level
