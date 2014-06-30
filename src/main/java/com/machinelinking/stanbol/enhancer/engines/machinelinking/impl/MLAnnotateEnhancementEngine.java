@@ -16,14 +16,27 @@
  */
 package com.machinelinking.stanbol.enhancer.engines.machinelinking.impl;
 
-import com.machinelinking.api.client.APIClient;
-import com.machinelinking.api.client.AnnotationResponse;
-import com.machinelinking.api.client.Clazz;
-import com.machinelinking.api.client.Image;
-import com.machinelinking.api.client.Keyword;
-import com.machinelinking.api.client.NGram;
-import com.machinelinking.api.client.Topic;
-import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.OntologicalClasses.SKOS_CONCEPT;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_RELATION;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_TYPE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_CONFIDENCE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_END;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_LABEL;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_REFERENCE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_TYPE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTED_TEXT;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTION_CONTEXT;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_START;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDFS_LABEL;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDF_TYPE;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.clerezza.rdf.core.Language;
 import org.apache.clerezza.rdf.core.Literal;
@@ -54,28 +67,16 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.stanbol.enhancer.servicesapi.rdf.OntologicalClasses.SKOS_CONCEPT;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_RELATION;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_TYPE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_CONFIDENCE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_END;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_LABEL;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_REFERENCE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_TYPE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTED_TEXT;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTION_CONTEXT;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_START;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDFS_LABEL;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDF_TYPE;
+import com.machinelinking.api.client.APIClient;
+import com.machinelinking.api.client.AnnotationResponse;
+import com.machinelinking.api.client.Clazz;
+import com.machinelinking.api.client.Cross;
+import com.machinelinking.api.client.Image;
+import com.machinelinking.api.client.Keyword;
+import com.machinelinking.api.client.NGram;
+import com.machinelinking.api.client.ParamsValidator;
+import com.machinelinking.api.client.Topic;
+import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
 
 /**
  * {@link MLAnnotateEnhancementEngine} provides functionality to
@@ -84,6 +85,7 @@ import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDF_TYPE;
 @Component(
         metatype = true,
         immediate = true,
+        configurationFactory = true, //allow multiple instances (e.g. using different APP_IDs)
         label = "%stanbol.MLAnnotateEnhancementEngine.name",
         description = "%stanbol.MLAnnotateEnhancementEngine.description",
         policy=ConfigurationPolicy.REQUIRE //APP_ID and APP_KEY are required
@@ -93,9 +95,15 @@ import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDF_TYPE;
         @Property(name = EnhancementEngine.PROPERTY_NAME, value = "machinelinkingAnnotate"),
         @Property(name = MLConstants.APP_ID),
         @Property(name = MLConstants.APP_KEY),
-        @Property(name = MLConstants.CONNECTION_TIMEOUT, intValue = MLConstants.DEFAULT_CONNECTION_TIMEOUT),
-        @Property(name = MLConstants.TOPIC, boolValue=false),
-        @Property(name = MLConstants.INCLUDE_ENTITY_DATA, boolValue=MLConstants.DEFAULT_INCLUDE_ENTITY_DATA_STATE)
+        @Property(name = MLConstants.CONNECTION_TIMEOUT, 
+            intValue = MLConstants.DEFAULT_CONNECTION_TIMEOUT),
+        @Property(name = MLConstants.KEYWORD, 
+            boolValue = MLConstants.DEFAULT_KEYWORD_STATE),
+        @Property(name = MLConstants.PREF_ENGLISH_RESORUCE_URIS, 
+            boolValue= MLConstants.DEFAUTL_PREF_ENGLISH_RESORUCE_URIS_STATE),
+        @Property(name = MLConstants.INCLUDE_ENTITY_DATA, 
+            boolValue=MLConstants.DEFAULT_INCLUDE_ENTITY_DATA_STATE),
+        @Property(name = MLConstants.TOPIC, boolValue=false)
 })
 public class MLAnnotateEnhancementEngine extends
         AbstractEnhancementEngine<IOException, RuntimeException> implements EnhancementEngine, ServiceProperties {
@@ -131,7 +139,6 @@ public class MLAnnotateEnhancementEngine extends
    	 * Set containing the only supported mime type {@link #TEXT_PLAIN_MIMETYPE}
    	 */
    	private static final Set<String> SUPPORTED_MIMTYPES = Collections.singleton(TEXT_PLAIN_MIMETYPE);
-
    	/**
    	 * This is the {@link MLConstants#DBPEDIA_RESOURCE_PREFIX} without the
    	 * '<code>http://</code>' prefix. This is required to construct entity URIs
@@ -172,6 +179,11 @@ public class MLAnnotateEnhancementEngine extends
     Map<String,Object> requestOptions;
     
     boolean includeEntityData = MLConstants.DEFAULT_INCLUDE_ENTITY_DATA_STATE;
+    /**
+     * If <code>fise:TextAnnotation</code> and <code>fise:EntityAnnotation</code>
+     * should be generated for {@link Keyword}s returned by Machinelinking
+     */
+    private boolean keywordState;
     
     /**
      * Default constructor used by OSGI. Expects {@link #activate(org.osgi.service.component.ComponentContext)}
@@ -206,14 +218,50 @@ public class MLAnnotateEnhancementEngine extends
         }
         this.client = new APIClient(appId, appKey, connTimeout);
         requestOptions = new HashMap<String,Object>();
-        
-        //parse includeEntityData state
-        Object value = ctx.getProperties().get(MLConstants.INCLUDE_ENTITY_DATA);
-        if(value != null){
-            includeEntityData = Boolean.parseBoolean(value.toString());
+        //we do not need the text to be sent in the response
+        requestOptions.put(ParamsValidator.include_text, false);
+        //parse the keyword state
+        Boolean state = Util.getState(properties, MLConstants.KEYWORD);
+        keywordState = state != null ? state : MLConstants.DEFAULT_KEYWORD_STATE;
+        //Set/parse the other supported request properties
+        if(keywordState) {
+            //parse includeEntityData state
+            Object value = ctx.getProperties().get(MLConstants.INCLUDE_ENTITY_DATA);
+            if(value != null){
+                includeEntityData = Boolean.parseBoolean(value.toString());
+            }
+            //parse preference English DBPedia state and set the CROSS parameter accordingly
+            state = Util.getState(properties, MLConstants.PREF_ENGLISH_RESORUCE_URIS);
+            requestOptions.put(ParamsValidator.cross, state != null ? 
+                        state : MLConstants.DEFAUTL_PREF_ENGLISH_RESORUCE_URIS_STATE);
+            //parse other request parameters
+            Util.parseRequestOption(properties, MLConstants.LINK, requestOptions);
+            Util.parseRequestOption(properties, MLConstants.FORM, requestOptions);
+            Util.parseRequestOption(properties, MLConstants.CLASS, requestOptions);
+            Util.parseRequestOption(properties, MLConstants.EXTRENAL, requestOptions);
+            Util.parseRequestOption(properties, MLConstants.IMAGE, requestOptions);
+            Integer category = Util.getIngegerProperty(properties, MLConstants.CATEGORY);
+            if(category != null){
+                requestOptions.put(ParamsValidator.category, category);
+            }
+        } else { 
+            //if we do not use keywords we can exclude all related information
+            //all response
+            requestOptions.put(ParamsValidator.link, false);
+            requestOptions.put(ParamsValidator.form, false);
+            requestOptions.put(ParamsValidator.cross, false);
+            requestOptions.put(ParamsValidator.category, Integer.valueOf(0));
+            requestOptions.put(ParamsValidator.external, false);
+            requestOptions.put(ParamsValidator._abstract, false);
+            requestOptions.put(ParamsValidator._class, false);
+            requestOptions.put(ParamsValidator.image, false);
         }
-        //parse supported request parameters
-        Util.parseRequestOption(ctx.getProperties(),MLConstants.CATEGORY, requestOptions);
+        Util.parseRequestOption(properties, MLConstants.TOPIC, requestOptions);
+        //parse integer request paraemters
+        Integer cat = Util.getIngegerProperty(properties, MLConstants.CATEGORY);
+        if(cat != null){
+            requestOptions.put(MLConstants.CATEGORY.substring(3), cat);
+        }
     }
 
     @Deactivate
@@ -242,29 +290,44 @@ public class MLAnnotateEnhancementEngine extends
      * @param ci the {@link org.apache.stanbol.enhancer.servicesapi.ContentItem}
      */
     public void computeEnhancements(ContentItem ci) throws EngineException {
+        log.debug("> compute enhancements for {}",ci.getUri());
         final String text;
         try {
             text = Util.getInputText(ci);
         } catch (Exception e) {
             throw new EngineException(this, ci, e);
         }
+        Map<String, Object> options = new HashMap<String,Object>(requestOptions);
+        String lang = EnhancementEngineHelper.getLanguage(ci);
+        if(lang != null){
+            log.debug(" - language: {}",lang);
+            options.put(ParamsValidator.lang, lang);
+        } // else detect the language
 
         final AnnotationResponse annotation;
+        long start = System.currentTimeMillis();
 		try {
-            annotation = this.client.annotate(text, requestOptions);
+            annotation = this.client.annotate(text, options);
 		} catch (Exception e) {
 		    throw new EngineException(
                     "Error while calling the MachineLinking language annotation service.",
                     e
             );
         }
-
-        MGraph g = ci.getMetadata();
-        ci.getLock().writeLock().lock();
+		if(log.isDebugEnabled()){
+            log.debug(" - processed text with {} chars in {}ms", 
+                text.length(), System.currentTimeMillis()-start);
+		}
+		start = System.currentTimeMillis();
+		ci.getLock().writeLock().lock();
         try {
-            createStatements(ci, annotation, text, g);
+            createStatements(ci, annotation, text, lang, ci.getMetadata());
         } finally {
             ci.getLock().writeLock().unlock();
+        }
+        if(log.isDebugEnabled()){
+            log.debug(" - enhancements written in {}ms",
+                System.currentTimeMillis()-start);
         }
     }
 
@@ -274,98 +337,104 @@ public class MLAnnotateEnhancementEngine extends
      * can relate to several TextAnnotations.
      *
      * @param annotation the generated annotation.
+     * @param text the annotated text
+     * @param lang the language of the text or <code>null</code> if not known
      * @param writer the statement writer.
      */
-    protected void createStatements(
-            ContentItem ci, AnnotationResponse annotation, String text, MGraph writer
-    ) {
-        final String lang = annotation.getLang();
+    protected void createStatements( ContentItem ci, AnnotationResponse annotation, 
+            String text, String lang, MGraph writer) {
+        if(lang == null){ //ML has detected the language
+            lang = annotation.getLang();
+            // also write the language annotation
+            final UriRef textAnnotation = EnhancementEngineHelper.createTextEnhancement(ci, this);
+            Util.addLanguageProperty(textAnnotation, writer, lang);
+        } //else language was already known
         final Language textLang = new Language(lang);
-        
-        // Text annotation.
-        final UriRef textAnnotation = EnhancementEngineHelper.createTextEnhancement(ci, this);
-        Util.addLanguageProperty(textAnnotation, writer, lang);
 
-        for(Keyword keyword : annotation.getKeywords()) {
-            // Entity annotation.
-            log.debug("> keyword '{}'({})",keyword.getForm(), keyword.getSensePage());
-            final UriRef entityAnnotation = EnhancementEngineHelper.createEntityEnhancement(ci, this);
-            UriRef dcType = null;
-            Literal label = new PlainLiteralImpl(keyword.getForm(), textLang);
-            log.debug(" - label: {}",label);
-            writer.add(new TripleImpl(entityAnnotation, ENHANCER_ENTITY_LABEL, label));
-            UriRef dbpediaResource = createDbpediaResourceURI(lang,keyword.getSensePage());
-            log.debug(" - dbpedia resource: {}",dbpediaResource);
-            writer.add(new TripleImpl(
-                    entityAnnotation,
-                    ENHANCER_ENTITY_REFERENCE,
-                    dbpediaResource
-            ));
-            if (keyword.getClasses().length > 0) {
-                Clazz type = keyword.getClasses()[0];
-                log.debug(" - type:", type.getUrl());
-                UriRef dbpediaType = createDbpediaTypeUri(type);
-                if(dbpediaType != null){
-                    log.debug(" - dbpedia type: ", dbpediaType);
-                    writer.add(new TripleImpl(entityAnnotation, ENHANCER_ENTITY_TYPE, 
-                        dbpediaType));
-                    dcType = dbpediaType;
-                } else {
-                    writer.add(new TripleImpl(entityAnnotation, ENHANCER_ENTITY_TYPE, 
-                        new UriRef(type.getUrl().toString())));
+        if(keywordState){
+    
+            for(Keyword keyword : annotation.getKeywords()) {
+                // Entity annotation.
+                log.debug("> keyword '{}'({})",keyword.getForm(), keyword.getSensePage());
+                final UriRef entityAnnotation = EnhancementEngineHelper.createEntityEnhancement(ci, this);
+                UriRef dcType = null;
+                Literal label = new PlainLiteralImpl(keyword.getForm(), textLang);
+                log.debug(" - label: {}",label);
+                writer.add(new TripleImpl(entityAnnotation, ENHANCER_ENTITY_LABEL, label));
+                UriRef dbpediaResource = createDbpediaResourceURI(
+                    lang, keyword.getSensePage(),keyword.getCrosses());
+                log.debug(" - dbpedia resource: {}",dbpediaResource);
+                writer.add(new TripleImpl(
+                        entityAnnotation,
+                        ENHANCER_ENTITY_REFERENCE,
+                        dbpediaResource
+                ));
+                if (keyword.getClasses().length > 0) {
+                    Clazz type = keyword.getClasses()[0];
+                    log.debug(" - type:", type.getUrl());
+                    UriRef dbpediaType = createDbpediaTypeUri(type);
+                    if(dbpediaType != null){
+                        log.debug(" - dbpedia type: ", dbpediaType);
+                        writer.add(new TripleImpl(entityAnnotation, ENHANCER_ENTITY_TYPE, 
+                            dbpediaType));
+                        dcType = dbpediaType;
+                    } else {
+                        writer.add(new TripleImpl(entityAnnotation, ENHANCER_ENTITY_TYPE, 
+                            new UriRef(type.getUrl().toString())));
+                    }
                 }
-            }
-            log.debug(" - probability:", keyword.getSenseProbability());
-            writer.add(new TripleImpl(
-                    entityAnnotation,
-                    ENHANCER_CONFIDENCE,
-                    literalFactory.createTypedLiteral(
-                            normalizeProbability((double) keyword.getSenseProbability())
-                    )
-            ));
-            // Single Ngram annotation.
-            for (NGram nGram : keyword.getNGrams()) {
-                log.debug(" - NGram [start:{}, end:{}]", nGram.getStart(),nGram.getEnd());
-                final UriRef ngramTextAnnotation = EnhancementEngineHelper.createTextEnhancement(ci, this);
-
-                writer.add(new TripleImpl(entityAnnotation, DC_RELATION, ngramTextAnnotation));
+                log.debug(" - probability:", keyword.getSenseProbability());
                 writer.add(new TripleImpl(
-                        ngramTextAnnotation,
-                        ENHANCER_START,
-                        literalFactory.createTypedLiteral(nGram.getStart())
+                        entityAnnotation,
+                        ENHANCER_CONFIDENCE,
+                        literalFactory.createTypedLiteral(
+                                normalizeProbability((double) keyword.getSenseProbability())
+                        )
                 ));
-                writer.add(new TripleImpl(
-                        ngramTextAnnotation,
-                        ENHANCER_END,
-                        literalFactory.createTypedLiteral(nGram.getEnd())
-                ));
-
-                log.debug("   - form: {}",keyword.getForm());
-                writer.add(new TripleImpl(
-                        ngramTextAnnotation,
-                        ENHANCER_SELECTED_TEXT,
-                        //new PlainLiteralImpl(text.substring(nGram.getStart(), nGram.getEnd()), textLang)
-                        new PlainLiteralImpl(keyword.getForm(), textLang)
-                ));
-                
-                if(dcType != null){
-                    writer.add(new TripleImpl(ngramTextAnnotation, DC_TYPE, dcType));
+                // Single Ngram annotation.
+                for (NGram nGram : keyword.getNGrams()) {
+                    log.debug(" - NGram [start:{}, end:{}]", nGram.getStart(),nGram.getEnd());
+                    final UriRef ngramTextAnnotation = EnhancementEngineHelper.createTextEnhancement(ci, this);
+    
+                    writer.add(new TripleImpl(entityAnnotation, DC_RELATION, ngramTextAnnotation));
+                    writer.add(new TripleImpl(
+                            ngramTextAnnotation,
+                            ENHANCER_START,
+                            literalFactory.createTypedLiteral(nGram.getStart())
+                    ));
+                    writer.add(new TripleImpl(
+                            ngramTextAnnotation,
+                            ENHANCER_END,
+                            literalFactory.createTypedLiteral(nGram.getEnd())
+                    ));
+    
+                    log.debug("   - form: {}",keyword.getForm());
+                    writer.add(new TripleImpl(
+                            ngramTextAnnotation,
+                            ENHANCER_SELECTED_TEXT,
+                            //new PlainLiteralImpl(text.substring(nGram.getStart(), nGram.getEnd()), textLang)
+                            new PlainLiteralImpl(keyword.getForm(), textLang)
+                    ));
+                    
+                    if(dcType != null){
+                        writer.add(new TripleImpl(ngramTextAnnotation, DC_TYPE, dcType));
+                    }
+                    
+                    final String selectionContext = EnhancementEngineHelper.getSelectionContext(
+                            text, keyword.getForm(), nGram.getStart()
+                    );
+                    log.debug("   - context: {}",selectionContext);
+                    writer.add(new TripleImpl(
+                            ngramTextAnnotation,
+                            ENHANCER_SELECTION_CONTEXT,
+                            new PlainLiteralImpl( selectionContext, textLang)));
                 }
-                
-                final String selectionContext = EnhancementEngineHelper.getSelectionContext(
-                        text, keyword.getForm(), nGram.getStart()
-                );
-                log.debug("   - context: {}",selectionContext);
-                writer.add(new TripleImpl(
-                        ngramTextAnnotation,
-                        ENHANCER_SELECTION_CONTEXT,
-                        new PlainLiteralImpl( selectionContext, textLang)));
+                if(includeEntityData){
+                    writeEntityInformation(writer,keyword, dbpediaResource,textLang);
+                }
+    
             }
-            if(includeEntityData){
-                writeEntityInformation(writer,keyword, dbpediaResource,textLang);
-            }
-
-        }
+        } //else do not write Stanbol Enhancements for Keywords
         Topic[] topics = annotation.getTopics();
         log.debug("> write {} Topics", topics == null ? 0 : topics.length);
         if(topics != null && topics.length > 0){
@@ -433,16 +502,29 @@ public class MLAnnotateEnhancementEngine extends
      * @param sensePage the sense Page (local name of the entity)
      * @return the {@link UriRef} for the URI of the Entity
      */
-    private UriRef createDbpediaResourceURI(String lang, String sensePage){
+    private UriRef createDbpediaResourceURI(String lang, String sensePage, Cross[] crosses){
+        //if the language is English directly create the Entity URI based on the
+        //sensePage string
         if(lang == null || "en".equalsIgnoreCase(lang)){
             return new UriRef(new StringBuilder(MLConstants.DBPEDIA_RESOURCE_PREFIX)
                 .append(sensePage).toString());
-        } else {
-            return new UriRef(new StringBuilder("http://")
-                .append(lang.toLowerCase(Locale.ROOT))
-                .append(DBPEDIA_RESOURCE_HOST_AND_PATH)
-                .append(sensePage).toString());
         }
+        //for other languages try to create the English resource URI based on the
+        //crosses (NOTE: would be better if this would be a Map with the language
+        //as key)
+        if(crosses != null){
+            for(Cross cross : crosses){
+                if("en".equalsIgnoreCase(cross.getLang())){
+                    return new UriRef(new StringBuilder(MLConstants.DBPEDIA_RESOURCE_PREFIX)
+                    .append(cross.getPage()).toString());
+                }
+            }
+        }
+        //fall back to the language specific entity URI
+        return new UriRef(new StringBuilder("http://")
+            .append(lang.toLowerCase(Locale.ROOT)).append('.')
+            .append(DBPEDIA_RESOURCE_HOST_AND_PATH)
+            .append(sensePage).toString());
     }
     /**
      * Maps the Airpedia topic to a DBPedia Resource <p>

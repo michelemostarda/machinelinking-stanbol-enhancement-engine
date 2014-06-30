@@ -16,6 +16,19 @@
  */
 package com.machinelinking.stanbol.enhancer.engines.machinelinking.impl;
 
+import static org.apache.stanbol.enhancer.servicesapi.EnhancementEngine.ENHANCE_ASYNC;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map.Entry;
+
 import org.apache.clerezza.rdf.core.LiteralFactory;
 import org.apache.clerezza.rdf.core.Resource;
 import org.apache.clerezza.rdf.core.UriRef;
@@ -41,20 +54,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
-import com.machinelinking.stanbol.enhancer.engines.machinelinking.impl.MLAnnotateEnhancementEngine;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map.Entry;
-
-import static org.apache.stanbol.enhancer.servicesapi.EnhancementEngine.ENHANCE_ASYNC;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * This class provides a JUnit test for the {@link MLAnnotateEnhancementEngine}.
