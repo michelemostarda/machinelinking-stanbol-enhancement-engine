@@ -16,6 +16,17 @@
  */
 package com.machinelinking.stanbol.enhancer.engines.machinelinking.impl;
 
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_LANGUAGE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_TYPE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_CONFIDENCE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.TechnicalClasses.DCTERMS_LINGUISTIC_SYSTEM;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.clerezza.rdf.core.LiteralFactory;
 import org.apache.clerezza.rdf.core.MGraph;
 import org.apache.clerezza.rdf.core.UriRef;
@@ -27,16 +38,7 @@ import org.apache.stanbol.enhancer.servicesapi.EnhancementEngine;
 import org.apache.stanbol.enhancer.servicesapi.helper.ContentItemHelper;
 import org.osgi.service.cm.ConfigurationException;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_LANGUAGE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_TYPE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_CONFIDENCE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.TechnicalClasses.DCTERMS_LINGUISTIC_SYSTEM;
+import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
 
 /**
  * General utility methods.
@@ -153,5 +155,95 @@ public class Util {
         g.add(new TripleImpl(entityAnnotation, DC_LANGUAGE, new PlainLiteralImpl(lang)));
         g.add(new TripleImpl(entityAnnotation, ENHANCER_CONFIDENCE, literalFactory.createTypedLiteral(1.0)));
         g.add(new TripleImpl(entityAnnotation, DC_TYPE, DCTERMS_LINGUISTIC_SYSTEM));
+    }
+
+    /**
+     * Parses a request option from the configuration parameters. <p>
+     * <b>IMPORTANT</b>This method assumes that the parsed confParam is
+     * '<code>ml.{parameter}</code> See {@link MLConstants} for defined
+     * constants (e.g. {@link MLConstants#CATEGORY}).<p>
+     * 
+     * Supported configuration values are <ul>
+     * <li><code>true/false</code> ({@link Boolean})
+     * <li><code>0/1</code> ({@link Number})
+     * <li><code>"0"/"1"</code> and <code>"true"/"false"</code> ({@link String})
+     * </ul>
+     * 
+     * If the requested confParam is not present in the configuration no request
+     * parameter is added to the request options
+     * 
+     * @param conf The configuration
+     * @param confParam The configuration parameter - '<code>ml.{parameter}</code>' 
+     * where <code>{parameter}</code> is one of the 
+     * <a href="http://www.machinelinking.com/wp/documentation/text-annotation/#parameters"> 
+     * parameters </a> supported by Machinelinking
+     * @param requestOptions the request options map to add the parsed '<code>{parameter}</code>' value
+     * @see MLConstants
+     * @see <a href="http://www.machinelinking.com/wp/documentation/text-annotation/#parameters"> 
+     * Parameters</a> supported by Machinelinking.
+     */
+    public static void parseRequestOption(Dictionary<String,Object> conf, String confParam,
+            Map<String,Object> requestOptions) {
+        Boolean state = getState(conf, confParam);
+        if(state != null){
+            String reqParam = confParam.substring(3); //remove the 'ml.{option}'
+            //NOTE: The ML APIClient converts Boolean to the integer 0/1 used
+            //      in the RESTful API
+            //requestOptions.put(reqParam, categoryState ? 1 : 0);
+            requestOptions.put(reqParam, state);
+        } // else  state not set ... do not add request option
+    }
+
+    /**
+     * Getter for the state of a boolean type property. Supported configuration values are <ul>
+     * <li><code>true/false</code> ({@link Boolean})
+     * <li><code>0/1</code> ({@link Number})
+     * <li><code>"0"/"1"</code> and <code>"true"/"false"</code> ({@link String})
+     * </ul>
+     * @param conf the configuration
+     * @param property the property
+     * @return the state or <code>null</code> if the property was not present
+     */
+    public static Boolean getState(Dictionary<String,Object> conf, String property) {
+        Object value = conf.get(property);
+        if(value instanceof String){
+            String strVal = ((String) value).trim();
+            if("0".equals(strVal)){
+                return false;
+            } else if("1".equals(strVal)){
+                return true;
+            } else {
+                return new Boolean(strVal);
+            }
+        } else if(value instanceof Number){
+            int state = ((Number)value).intValue();
+            return state == 1 ? Boolean.TRUE : state == 0 ? Boolean.FALSE : null;
+        } else if(value instanceof Boolean){
+            return (Boolean)value;
+        } else {
+            return null;
+        }
+    }
+    /**
+     * Parses an Integer property from the parsed configuration and property
+     * @param conf the configuration
+     * @param property the property
+     * @return the value or <code>null</code> if the property was not present
+     * @throws ConfigurationException if the property could not be parsed as an {@link Integer}
+     */
+    public static Integer getIngegerProperty(Dictionary<String,Object> conf, String property) throws ConfigurationException {
+        Object value = conf.get(property);
+        if(value instanceof Number){
+            return ((Number)value).intValue();
+        } else if(value != null){
+            try {
+                return Integer.parseInt(value.toString());
+            } catch (NumberFormatException e){
+                throw new ConfigurationException(property, "Unable to parse Ingeger from "
+                    + value + "(type: " + value.getClass() + ")!", e);
+            }
+        } else {
+            return null;
+        }
     }
 }

@@ -16,6 +16,13 @@
  */
 package com.machinelinking.stanbol.enhancer.engines.machinelinking.impl;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Hashtable;
+
 import org.apache.clerezza.rdf.core.LiteralFactory;
 import org.apache.clerezza.rdf.core.Resource;
 import org.apache.clerezza.rdf.core.UriRef;
@@ -41,14 +48,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
-import com.machinelinking.stanbol.enhancer.engines.machinelinking.impl.MLLanguageIdentifierEnhancementEngine;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
 
 /**
  *  Test for {@link MLLanguageIdentifierEnhancementEngine} class.

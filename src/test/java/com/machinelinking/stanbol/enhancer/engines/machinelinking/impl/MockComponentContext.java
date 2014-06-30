@@ -16,14 +16,14 @@
  */
 package com.machinelinking.stanbol.enhancer.engines.machinelinking.impl;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentInstance;
-
-import java.util.Dictionary;
-import java.util.Hashtable;
 
 /**
  * Mock implementation of {@link ComponentContext}.

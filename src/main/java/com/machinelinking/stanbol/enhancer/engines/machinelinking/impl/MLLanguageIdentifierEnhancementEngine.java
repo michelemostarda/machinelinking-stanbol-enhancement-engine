@@ -16,9 +16,10 @@
  */
 package com.machinelinking.stanbol.enhancer.engines.machinelinking.impl;
 
-import com.machinelinking.api.client.APIClient;
-import com.machinelinking.api.client.GuessedLanguageResponse;
-import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Map;
 
 import org.apache.clerezza.rdf.core.MGraph;
 import org.apache.clerezza.rdf.core.UriRef;
@@ -40,10 +41,9 @@ import org.apache.stanbol.enhancer.servicesapi.impl.AbstractEnhancementEngine;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.component.ComponentContext;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Map;
+import com.machinelinking.api.client.APIClient;
+import com.machinelinking.api.client.GuessedLanguageResponse;
+import com.machinelinking.stanbol.enhancer.engines.machinelinking.MLConstants;
 
 
 /**
